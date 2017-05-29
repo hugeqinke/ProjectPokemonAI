@@ -76,11 +76,6 @@ public:
             sys_err("Could not listen on socket"); 
         }
         
-        // query to execute python 
-        std::string command = "python UserCrawler.py " + std::string(sockname, strlen(sockname)) + " &"; 
-        std::cout << command << std::endl;
-        std::system(command.c_str());  
-
         std::cout << "keep on rolling" << std::endl;
 
         struct params* p = new struct params();
@@ -94,12 +89,11 @@ public:
 
     // duplexed pipe back to the parent for processing
     void start() {
-        sockaddr_un incoming; 
-        socklen_t size; 
-        int sock; 
+                int sock; 
 
         while (true) {
-            size = sizeof(incoming); 
+            sockaddr_un incoming; 
+            socklen_t size; 
             if ((sock = accept(_fd, (struct sockaddr*)&incoming, &size)) < 0) {
                 perror("Could not accept incoming request"); 
             }

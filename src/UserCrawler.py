@@ -11,9 +11,10 @@ class BattleUrl(object):
         self.fmt = fmt
 
 class UserCrawler(object):
-    def __init__(self, socketName):
+    def __init__(self, socketName, socketName2):
         self._headers = self.buildHeaders()
         self._socketName = socketName
+        self._socketName2 = socketName2
 
     # sends a request to the url and requests resources
     def crawl(self, url, headers, body): 
@@ -65,9 +66,14 @@ class UserCrawler(object):
     def request(self):
         # watch out for some interesting names (blaze dude)
         try: 
+            # connect and handle transmission with User Server
             sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             print (self._socketName)
             sock.connect(self._socketName)
+
+            # now handle transmission with url server
+            sock2 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            sock2.connect(self._socketName2)
 
             requestSignal = "req\0" 
             sock.sendall(requestSignal)
@@ -96,7 +102,24 @@ class UserCrawler(object):
                     # print (chunk) 
                     sock.send(chunk)
 
+                # don't need to chunk it as long as the battleUrl is fewer than 1024 bytes 
+                # (or whatever size it is on the UrlServer2 end)
+                # for battleUrl in battleUrls: 
+                #    battleUrl.url += '\0\n'
+                #    sock2.send(battleUrl.url)
+                #    print (battleUrl.url)
+                request = ""
+                for battleUrl in battleUrls: 
+                    request += battleUrl.url
+ 
+                chunksBattle = self.chunkRequest(request, 1024) 
+                
+                for chunkBattle in chunksBattle: 
+                    sock2.send(chunk) 
+
             sock.close()
+            sock2.close()
+                            
         except OSError as err: 
             print (err)
 
@@ -145,7 +168,11 @@ class UserCrawler(object):
 if __name__ == "__main__": 
     # fork a bunch of crawlers here later 
     # TODO: better arguemnt messange 
-    
+   
+    # socketName: refers to Username Server
+    # socketName2: refers to Battle log url Server 
     socketName = sys.argv[1]
-    wc = UserCrawler(socketName)
+    socketName2 = sys.argv[2]
+
+    wc = UserCrawler(socketName, socketName2)
     wc.retrieve()

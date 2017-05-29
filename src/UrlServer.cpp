@@ -20,6 +20,7 @@
 typedef std::chrono::high_resolution_clock Clock;
 
 #include "UrlServlet.hpp"
+#include "UrlServlet2.hpp"
 #include "UrlAllocator.hpp"
 #include "DataBucket.hpp"
 
@@ -33,6 +34,7 @@ int main() {
      
     fd_set rset; 
     int children[CHILDREN]; 
+    int childrenBattle[CHILDREN]; 
     int fds[CHILDREN];  
     int maxfd = -1; 
 
@@ -41,6 +43,10 @@ int main() {
     for (int i = 0; i < CHILDREN; i++) {
         int fd[2]; 
         int child;
+
+        std::string socketname = "test.socket";
+        std::string socketnameBattle = "battle.socket";
+        std::string pythonCall = "python UserCrawler.py ";
 
         if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd) < 0) {
             perror("Could not create socketpair in main"); 
@@ -60,7 +66,25 @@ int main() {
             std::string socketName = "test.socket" + std::to_string(i); 
             UrlServlet* servlet = new UrlServlet(socketName.c_str(), fd[1]);
             servlet->start();  
-        } 
+            exit(2); 
+        }
+
+        if ((childrenBattle[i] = fork()) < 0) {
+            perror("Could not battle fork child");
+        }
+
+        if (!childrenBattle[i]) {
+            std::string socketName = "battle.socket" + std::to_string(i); 
+            BattleCrawler* servlet = new BattleCrawler(socketName.c_str()); 
+            servlet->start(); 
+            exit(2);     
+        }
+
+        // query to execute python 
+        std::string ssocketname = socketname + std::to_string(i); 
+        std::string ssocketnameBattle = socketnameBattle + std::to_string(i); 
+        std::string command = pythonCall + " " + ssocketname + " " + ssocketnameBattle + " &";
+        std::system(command.c_str());  
     }
 
     int result; 
@@ -96,7 +120,7 @@ int main() {
                 }
             } 
         }
-        std::cout << receivedData.size() << std::endl;
+        // std::cout << receivedData.size() << std::endl;
         // no thread for now, just let it build up in file queue (should consider reducing max buffer size)
         for (auto it = receivedData.begin(); it != receivedData.end(); it++) {
             // for this parcel, determine where we should put this to work
@@ -117,7 +141,7 @@ int main() {
             }  
         }
 
-        std::cout << db->bucket.size() << std::endl;
+        // std::cout << db->bucket.size() << std::endl;
         if (db->bucket.size() >= 2500) {
             auto finish = Clock::now(); 
 
