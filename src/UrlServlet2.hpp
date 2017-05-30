@@ -24,45 +24,6 @@ struct params_battle {
 
 std::queue<std::string> _wqBattle;
 
-void* battleUrlLoader(void* args) {
-    // lol gotta accept the connection first 
-    struct params_battle* p = (struct params_battle*) args;    
-    bool receiving = true; 
-    std::stringstream ss; 
-   
-    while (true) {
-        int sock;
-        socklen_t size;
-        struct sockaddr_un incoming; 
-   
-        if ((sock = accept(p->fd, (struct sockaddr*)&incoming, &size)) < 0) {
-            perror("Could not accept incoming connection");   
-        } 
-
-        do {
-            char buff[1024]; 
-            int buffLen = 1024; 
-            int ret; 
-            if ((ret = recv(sock, buff, buffLen, 0)) <= 0) {
-                receiving = false;
-                std::cout << "Terminated" << std::endl;
-                if (ret < 0) {
-                    perror ("Could not read battle url from the parent");
-                    break;
-                }
-            }
-            ss << buff;  
-
-            std::cout << "Received: " << buff << std::endl;
-        } while(receiving); 
-       
-        std::string gameName; 
-        while (getline(ss, gameName, '\n')) {
-            _wqBattle.push(gameName); 
-        }
-    }
-}
-
 // handles receiving requests from Crawlers
 // doesn't even need to communicate with main server...we'll have at most 2 duplicates. 
 // in fact, i don't think we'll even have duplicates since it'll be handled the user duplicate checker
@@ -96,46 +57,53 @@ public:
             perror("Could not listen on battle crawler socket");
             exit(-1);   
         } 
-
-        // handle reading on a separate thread
-        params_battle pb; 
-        pb.fd = _fd; 
-   
-        if (pthread_create(&_tid, NULL, battleUrlLoader, (struct params_battle*)&pb) < 0) {
-            perror("Could not create a thread"); 
-            exit(-1); 
-        }
     }
 
     void start() {
         while (true) {
-            while(_wqBattle.empty()) continue;
-            std::string url = _wqBattle.front();
+            while (true) {
+                int sock;
+                socklen_t size;
+                struct sockaddr_un incoming; 
+          
+                if ((sock = accept(_fd, (struct sockaddr*)&incoming, &size)) < 0) {
+                    perror("Could not accept incoming connection");   
+                    continue; 
+                } 
+                
+                bool receiving = true;
+                std::stringstream ss; 
+                
+                do {
+                    char buff[1024]; 
+                    int buffLen = 1024; 
+                    int ret; 
+                    if ((ret = recv(sock, buff, buffLen, 0)) <= 0) {
+                        receiving = false;
+                        if (ret < 0) {
+                            perror ("Could not read battle url from the parent");
 
-            traversed.push_back(url); 
-    
-            std::cout << traversed.size() << std::endl; 
-            _wqBattle.pop(); 
+                            exit(-1); 
+                            break;
+                        }
+                    }
+                    ss << buff;  
+                } while(receiving); 
+          
+                // TODO: wget on separate thread...request and forget 
+                std::string gameName; 
+                while (getline(ss, gameName, '\n')) {
+                    std::string wg = "wget -O "; 
+                    std::string dir = " ./datalogs/";
+             
+                    std::string execution = wg + dir + gameName + " http://replay.pokemonshowdown.com/" + gameName; 
+                    std::cout << execution << std::endl;
+                    std::system(execution.c_str());
+                }
+            }    
+
         }
    
-        // while (true) {
-        //     // get things from the work queue and wget that shit
-        //     std::string url = _wq.front(); 
-        //     std::string execution = "wget " + url;  
-        //     std::system(execution); 
-        //     _wqBattle.pop();  
-
-        //     // and that's it!
-        // }
-        // clear contents of the directory first (or back up) 
-        
-        // std::string wg = "wget -O "; 
-        // std::string dir = " ./datalogs/";
-       
-        // std::system("exec rm -f ./datalogs/*");
- 
-        // std::string execution = wg + dir + url + " http://replay.pokemonshowdown.com/" + url; 
-        // std::system(execution.c_str());
     }
 
 private: 

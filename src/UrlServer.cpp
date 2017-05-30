@@ -31,7 +31,30 @@ typedef std::chrono::high_resolution_clock Clock;
 // Create a bunch of sockets
 int main() {
     auto start = Clock::now(); 
-     
+   
+
+    // Clear directory for testing purposes
+    std::system("exec rm -f ./datalogs/*");
+
+    // inital setup
+    // no seeds with white spaces...if there are any special characters, 
+    // replace with url percent encoding
+    std::vector<std::string> initialUsers = {
+        "Gym%20Ldr.%20Pulse",
+        "kdarewolf",
+        "Onox",
+        "hard", 
+        "Aimvad",
+        "vitico",
+        "wtfmangg", 
+        "Nazara",
+        "Guchi",
+        "Kevinskie",
+        "lapp94",
+        "Enmx",
+        "darkhuy"
+    }; 
+
     fd_set rset; 
     int children[CHILDREN]; 
     int childrenBattle[CHILDREN]; 
@@ -41,6 +64,9 @@ int main() {
     DataBucket* db = new DataBucket();     
     
     for (int i = 0; i < CHILDREN; i++) {
+        std::string seed = initialUsers.at(i);   
+        db->insert(seed); 
+
         int fd[2]; 
         int child;
 
@@ -64,7 +90,7 @@ int main() {
         else {  // This is the child
             close(fd[0]);
             std::string socketName = "test.socket" + std::to_string(i); 
-            UrlServlet* servlet = new UrlServlet(socketName.c_str(), fd[1]);
+            UrlServlet* servlet = new UrlServlet(socketName.c_str(), fd[1], seed);
             servlet->start();  
             exit(2); 
         }
@@ -130,7 +156,7 @@ int main() {
                 // note: we start at 1 because the string here will be quoted (unicode characters)
                 char firstChar = it->at(1); 
                 int hash = firstChar % CHILDREN;
-          
+        
                 // create new urls here and write to child
                 std::string urln = *it; 
 

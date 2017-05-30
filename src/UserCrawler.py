@@ -16,6 +16,9 @@ class UserCrawler(object):
         self._socketName = socketName
         self._socketName2 = socketName2
 
+        print(self._socketName) 
+        print(self._socketName2)
+
     # sends a request to the url and requests resources
     def crawl(self, url, headers, body): 
         battleUrls = []
@@ -68,7 +71,6 @@ class UserCrawler(object):
         try: 
             # connect and handle transmission with User Server
             sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            print (self._socketName)
             sock.connect(self._socketName)
 
             # now handle transmission with url server
@@ -110,12 +112,12 @@ class UserCrawler(object):
                 #    print (battleUrl.url)
                 request = ""
                 for battleUrl in battleUrls: 
-                    request += battleUrl.url
+                    request += battleUrl.url[1:] + '\n'
  
                 chunksBattle = self.chunkRequest(request, 1024) 
                 
                 for chunkBattle in chunksBattle: 
-                    sock2.send(chunk) 
+                    sock2.send(chunkBattle)
 
             sock.close()
             sock2.close()

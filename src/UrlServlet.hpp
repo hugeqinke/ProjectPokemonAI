@@ -39,12 +39,11 @@ void * urlLoader(void* arg) {
 
 class UrlServlet {
 public: 
-    UrlServlet (const char* sockname, int fdes) {
+    UrlServlet (const char* sockname, int fdes, std::string seed) {
         _fdes = fdes; 
 
         // for testing purposes, temporarily populate some fake shit into the queue
-        std::string test = "Gym Ldr. Pulse";
-        _wq.push(test);
+        _wq.push(seed);
 
         // open up a couple of named unix domains sockets
         struct sockaddr_un un; 
@@ -89,7 +88,7 @@ public:
 
     // duplexed pipe back to the parent for processing
     void start() {
-                int sock; 
+        int sock; 
 
         while (true) {
             sockaddr_un incoming; 
