@@ -1,6 +1,6 @@
 1. logger 
-    - which users are competing 
-    - name of the file 
+    - which users are competing in the logged game
+    - dump logging files into some separate directory
 2. signaler 
 3. read files
 4. multithreading for wget
