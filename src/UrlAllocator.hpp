@@ -16,5 +16,7 @@ namespace alloc {
         for (auto it = data->urls.begin(); it != data->urls.end(); it++) {
             std::cout << *it << std::endl;
         }
+
+        return ((void *) 1);
     }
 }

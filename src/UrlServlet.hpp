@@ -1,3 +1,6 @@
+#ifndef Url_Servlet_Hpp
+#define Url_Servlet_Hpp
+
 // a servlet class that initalizes a server that parses requests, stuff like that
 #include<iostream>
 #include<sstream>
@@ -15,6 +18,8 @@
 #include<unordered_set> 
 #include<vector> 
 #include<queue> 
+
+#include "Core/Logger.hpp" 
 
 std::queue<std::string> _wq;
 
@@ -57,7 +62,8 @@ public:
 
         strcpy(un.sun_path, sockname); 
         if ( (_fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-            sys_err("Could not create socket");
+            tlog::Log::Instance().logSysError("Could not create socket"); 
+            exit(-1); 
         }    
 
         // force unlink, we only intend to have this open once per socket id
@@ -66,13 +72,15 @@ public:
 
         size = offsetof(struct sockaddr_un, sun_path) + strlen(un.sun_path); 
         if (bind(_fd, (struct sockaddr*)&un, size) < 0) {
-            sys_err("Could not bind socket"); 
+            tlog::Log::Instance().logSysError("Could not bind socket"); 
+            exit(-1); 
         }
 
         std::cout << "Unix socket has been successfully bound to " << sockname << std::endl; 
 
         if(listen(_fd, 5) < 0) {
-            sys_err("Could not listen on socket"); 
+            tlog::Log::Instance().logSysError("Could not listen on socket"); 
+            exit(-1); 
         }
         
         std::cout << "keep on rolling" << std::endl;
@@ -94,7 +102,7 @@ public:
             sockaddr_un incoming; 
             socklen_t size; 
             if ((sock = accept(_fd, (struct sockaddr*)&incoming, &size)) < 0) {
-                perror("Could not accept incoming request"); 
+                tlog::Log::Instance().logSysError("Could not accept incoming request"); 
             }
       
             // give some work to the client 
@@ -144,7 +152,7 @@ private:
             const char* chunk = chunks.at(i).c_str(); 
             // std::cout << "Writing " << chunks.at(i) << std::endl;
             if (write(_fdes, chunk, 1024) < 0) {
-                perror("Child could not pass information back to parent"); 
+                tlog::Log::Instance().logSysError("Child could not pass information back to parent"); 
                 std::cout << "Dropped packets: " << chunk << std::endl;
                 continue; 
             }
@@ -171,7 +179,7 @@ private:
         const char* urlMsg;
 
         if ((msgSize = recv(sock, msgBuff, 4, 0)) < 0) {
-            perror("Failed to receive incoming message"); 
+            tlog::Log::Instance().logSysError("Failed to receive incoming message");
             return -1;  
         }            
 
@@ -183,7 +191,7 @@ private:
         urlMsg = _wq.front().c_str(); 
         int urlMsgLen = strlen(urlMsg); 
         if (send(sock, urlMsg, urlMsgLen, 0) < 0) {
-            perror("Failed to send back message"); 
+            tlog::Log::Instance().logSysError("Failed to send back message");
             return -1; 
         }
 
@@ -205,7 +213,7 @@ private:
                 receiving = false; 
             
                 if (msgSize < 0) {
-                    perror("processUrls - Failed to receive incoming urls");   
+                    tlog::Log::Instance().logError("processUrls - Failed to receive incoming urls");
                     return -1; 
                 }
             } 
@@ -222,11 +230,7 @@ private:
         buff = ss.str(); 
  
         return buff.length(); 
-} 
-
-    void sys_err(const char* msg) {
-        perror(msg); 
-        exit(-1); 
-    }
+    } 
 }; 
 
+#endif // Url_Servlet_Hpp

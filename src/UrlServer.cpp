@@ -23,6 +23,7 @@ typedef std::chrono::high_resolution_clock Clock;
 #include "UrlServlet2.hpp"
 #include "UrlAllocator.hpp"
 #include "DataBucket.hpp"
+#include "Core/Logger.hpp"
 
 // Children =.=
 #define CHILDREN 1
@@ -30,8 +31,9 @@ typedef std::chrono::high_resolution_clock Clock;
 // TODO: move everything to a separate "Socket" class
 // Create a bunch of sockets
 int main() {
+    tlog::Log::Instance().activate("UrlServer"); 
+    
     auto start = Clock::now(); 
-   
 
     // Clear directory for testing purposes
     std::system("exec rm -f ./datalogs/*");
@@ -75,10 +77,12 @@ int main() {
         std::string pythonCall = "python UserCrawler.py ";
 
         if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd) < 0) {
-            perror("Could not create socketpair in main"); 
+            tlog::Log::Instance().logSysError("Could not create socketpair in main"); 
+            exit(-1); 
         } 
+
         if ((children[i] = fork()) < 0) {
-            perror("Could not fork child servlet"); 
+            tlog::Log::Instance().logSysError("Could not fork child servlet"); 
             exit(-1); 
         }
 
@@ -96,7 +100,7 @@ int main() {
         }
 
         if ((childrenBattle[i] = fork()) < 0) {
-            perror("Could not battle fork child");
+            tlog::Log::Instance().logSysError("Could not battle fork child");
         }
 
         if (!childrenBattle[i]) {
@@ -106,7 +110,7 @@ int main() {
             exit(2);     
         }
 
-        // query to execute python 
+        // commands to execute python crawlers
         std::string ssocketname = socketname + std::to_string(i); 
         std::string ssocketnameBattle = socketnameBattle + std::to_string(i); 
         std::string command = pythonCall + " " + ssocketname + " " + ssocketnameBattle + " &";
@@ -125,7 +129,7 @@ int main() {
         }
  
         if((result = select(maxfd + 1, &rset, NULL, NULL, NULL)) < 0) {
-            perror("Error is in the logs when trying to select"); 
+            tlog::Log::Instance().logSysError("Error is in the logs when trying to select");
             continue; 
         }
 
@@ -134,7 +138,7 @@ int main() {
             if (FD_ISSET(fds[i], &rset)) {
                 if (read(fds[i], buff, charbuff) < 0) {
                     std::cout << "Fail" << std::endl;
-                    perror("Could not read"); 
+                    tlog::Log::Instance().logSysError("Could not read data from crawler");
                 }
                 else {
                     std::string buffData (buff, strlen(buff));  
@@ -161,7 +165,7 @@ int main() {
                 std::string urln = *it; 
 
                 if (write(fds[hash], urln.c_str(), 1024) < 0) {
-                    perror("Could not write back to child");                   
+                    tlog::Log::Instance().logSysError("Could not write a url back to child"); 
                     continue; 
                 }
             }  
@@ -181,19 +185,6 @@ int main() {
             fstr.close(); 
             exit(1); 
         }
-
-        // push to allocator so we can continue to receive messages (multithreading)
-        // profile this step, see if we actually need to spawn threads??? depends on how many children we have
-        // struct alloc::batch* data = new struct alloc::batch();
-        // pthread_t tid; 
-        // data->urls = receivedData; 
-        // if (pthread_create(&tid, NULL, alloc::allocate, data)) {
-        //     std::cout << "Could not create allocator thread" << std::endl; 
-        // }
-
-        // // add a join here for debugging porpoises
-        // pthread_join(tid, NULL); 
-
     }
     return 0;
  }

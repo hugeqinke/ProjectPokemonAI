@@ -1,3 +1,6 @@
+#ifndef Data_Bucket_Hpp
+#define Data_Bucket_Hpp
+
 #include <vector> 
 #include <unordered_set> 
 
@@ -17,3 +20,5 @@ public:
         return false; 
     }
 };
+
+#endif // Data_Bucket_Hpp

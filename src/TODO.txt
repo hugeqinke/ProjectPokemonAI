@@ -1,3 +1,7 @@
 1. logger 
+    - which users are competing 
+    - name of the file 
 2. signaler 
 3. read files
+4. multithreading for wget
+

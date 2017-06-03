@@ -1,3 +1,6 @@
+#ifndef Url_Servlet_2_Hpp
+#define Url_Servlet_2_Hpp 
+
 #include<iostream>
 #include<sstream>
 #include<string>
@@ -14,6 +17,8 @@
 #include<unordered_set> 
 #include<vector> 
 #include<queue> 
+
+#include "Core/Logger.hpp" 
 
 // TODO: need to make some abstract schenanigans here...some crawler interface or whatnot
 
@@ -40,21 +45,21 @@ public:
         int size = offsetof(struct sockaddr_un, sun_path) + strlen(sockname);
        
         if ( (_fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-            perror("Could not listen on sock stream");
+            tlog::Log::Instance().logSysError("Could not listen on sock stream");
             exit(-1);  
         }
         // use the information take from the crawler to wget some webpages
         unlink(sockname); 
  
         if(bind(_fd, (struct sockaddr*)&un, size) < 0) {
-            perror("Could not bind the the socket battle  crawler thing"); 
+            tlog::Log::Instance().logSysError("Could not bind the the socket battle crawler thing");
             exit(-1);
         }
 
         std::cout << "Battle Crawler successfully binded " << sockname <<  std::endl; 
 
         if (listen(_fd, 5) < 0) {
-            perror("Could not listen on battle crawler socket");
+            tlog::Log::Instance().logSysError("Could not listen on battle crawler socket");
             exit(-1);   
         } 
     }
@@ -67,7 +72,7 @@ public:
                 struct sockaddr_un incoming; 
           
                 if ((sock = accept(_fd, (struct sockaddr*)&incoming, &size)) < 0) {
-                    perror("Could not accept incoming connection");   
+                    tlog::Log::Instance().logSysError("Could not accept incoming connection");
                     continue; 
                 } 
                 
@@ -81,8 +86,7 @@ public:
                     if ((ret = recv(sock, buff, buffLen, 0)) <= 0) {
                         receiving = false;
                         if (ret < 0) {
-                            perror ("Could not read battle url from the parent");
-
+                            tlog::Log::Instance().logSysError("Could not read battle url from the parent");
                             exit(-1); 
                             break;
                         }
@@ -111,3 +115,5 @@ private:
     pthread_t _tid; 
     std::vector<std::string> traversed;
 };
+
+#endif // Url_Servlet_Hpp_2
