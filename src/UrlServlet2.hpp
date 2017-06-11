@@ -34,8 +34,9 @@ std::queue<std::string> _wqBattle;
 // in fact, i don't think we'll even have duplicates since it'll be handled the user duplicate checker
 class BattleCrawler {
 public: 
-    BattleCrawler(const char* sockname) {
+    BattleCrawler(const char* sockname, int id) {
         // listen on the socket for the shit coming out from the UserCrawler 
+        _id = id; 
         struct sockaddr_un un; 
         
         un.sun_family = AF_UNIX; 
@@ -65,53 +66,51 @@ public:
     }
 
     void start() {
+        tlog::Log::Instance().logInfo("Starting battle crawler child"); 
         while (true) {
-            while (true) {
-                int sock;
-                socklen_t size;
-                struct sockaddr_un incoming; 
-          
-                if ((sock = accept(_fd, (struct sockaddr*)&incoming, &size)) < 0) {
-                    tlog::Log::Instance().logSysError("Could not accept incoming connection");
-                    continue; 
-                } 
-                
-                bool receiving = true;
-                std::stringstream ss; 
-                
-                do {
-                    char buff[1024]; 
-                    int buffLen = 1024; 
-                    int ret; 
-                    if ((ret = recv(sock, buff, buffLen, 0)) <= 0) {
-                        receiving = false;
-                        if (ret < 0) {
-                            tlog::Log::Instance().logSysError("Could not read battle url from the parent");
-                            exit(-1); 
-                            break;
-                        }
+            int sock;
+            socklen_t size;
+            struct sockaddr_un incoming; 
+      
+            if ((sock = accept(_fd, (struct sockaddr*)&incoming, &size)) < 0) {
+                tlog::Log::Instance().logSysError("Could not accept incoming connection");
+                continue; 
+            } 
+            
+            bool receiving = true;
+            std::stringstream ss; 
+            
+            do {
+                char buff[1024]; 
+                int buffLen = 1024; 
+                int ret; 
+                if ((ret = recv(sock, buff, buffLen, 0)) <= 0) {
+                    receiving = false;
+                    if (ret < 0) {
+                        tlog::Log::Instance().logSysError("Could not read battle url from the parent");
+                        exit(-1); 
+                        break;
                     }
-                    ss << buff;  
-                } while(receiving); 
-          
-                // TODO: wget on separate thread...request and forget 
-                std::string gameName; 
-                while (getline(ss, gameName, '\n')) {
-                    std::string wg = "wget -O "; 
-                    std::string dir = " ./datalogs/";
-             
-                    std::string execution = wg + dir + gameName + " http://replay.pokemonshowdown.com/" + gameName; 
-                    std::cout << execution << std::endl;
-                    std::system(execution.c_str());
                 }
-            }    
-
-        }
-   
+                ss << buff;  
+            } while(receiving); 
+      
+            // TODO: wget on separate thread...request and forget 
+            std::string gameName; 
+            while (getline(ss, gameName, '\n')) {
+                std::string wg = "wget -O "; 
+                std::string dir = " ./datalogs/";
+                // std::string wgetlog = " -o ./logs/wgetlog" + std::to_string(_id) + ".log"; 
+         
+                std::string execution = wg + dir + gameName + " http://replay.pokemonshowdown.com/" + gameName; 
+                tlog::Log::Instance().logInfo("Executing - " + execution); 
+                std::system(execution.c_str());
+            }
+        }    
     }
 
 private: 
-    int _fd; 
+    int _fd, _id; 
     pthread_t _tid; 
     std::vector<std::string> traversed;
 };

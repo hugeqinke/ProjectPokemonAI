@@ -28,11 +28,50 @@ typedef std::chrono::high_resolution_clock Clock;
 // Children =.=
 #define CHILDREN 1
 
+int children[CHILDREN]; 
+int childrenBattle[CHILDREN]; 
+
+
+void halt_parent(int signo) {
+    // sigkill / sigterm too? 
+    for (int i = 0; i < CHILDREN; i++) {
+        // SIGTERM and not SIGKILL here...we need to cleanly exit out of logging and shizzles
+        kill(children[i], SIGTERM);
+        kill(childrenBattle[i], SIGTERM);  
+
+        int status;
+        int status1; 
+
+        waitpid(children[i], &status, 0); 
+        tlog::Log::Instance().logInfo("Waiting for server child " + std::to_string(i));
+        waitpid(childrenBattle[i], &status1, 0); 
+        tlog::Log::Instance().logInfo("Waiting for battle child " + std::to_string(i));
+    }
+
+    tlog::Log::Instance().logInfo("We've killed all our children :D"); 
+   
+    // serialize items in user hashtable
+
+
+    exit(1);     
+} 
+
+void halt_child_servlet(int signo) {
+// for this servlet, we want to see if we can kill the python crawler processes cleanly
+    exit(1); 
+}
+
+void halt_child_servlet2(int signo) {
+     
+}
+
 // TODO: move everything to a separate "Socket" class
 // Create a bunch of sockets
 int main() {
     tlog::Log::Instance().activate("UrlServer"); 
-    
+   
+    tlog::Log::Instance().logInfo("We're revving it up in this mofo"); 
+ 
     auto start = Clock::now(); 
 
     // Clear directory for testing purposes
@@ -58,8 +97,6 @@ int main() {
     }; 
 
     fd_set rset; 
-    int children[CHILDREN]; 
-    int childrenBattle[CHILDREN]; 
     int fds[CHILDREN];  
     int maxfd = -1; 
 
@@ -92,6 +129,8 @@ int main() {
             maxfd = std::max(maxfd, fd[0]); 
         } 
         else {  // This is the child
+            signal(SIGTERM, halt_child_servlet);  
+            
             close(fd[0]);
             std::string socketName = "test.socket" + std::to_string(i); 
             UrlServlet* servlet = new UrlServlet(socketName.c_str(), fd[1], seed);
@@ -104,8 +143,13 @@ int main() {
         }
 
         if (!childrenBattle[i]) {
+            // active logger for child
+            signal(SIGTERM, halt_child_servlet); 
+
+            tlog::Log::Instance().activate("BattleLogger"); 
+            tlog::Log::Instance().logInfo("Battle logger has been activated");  
             std::string socketName = "battle.socket" + std::to_string(i); 
-            BattleCrawler* servlet = new BattleCrawler(socketName.c_str()); 
+            BattleCrawler* servlet = new BattleCrawler(socketName.c_str(), i); 
             servlet->start(); 
             exit(2);     
         }
@@ -116,6 +160,8 @@ int main() {
         std::string command = pythonCall + " " + ssocketname + " " + ssocketnameBattle + " &";
         std::system(command.c_str());  
     }
+
+    signal(SIGINT, halt_parent); 
 
     int result; 
    

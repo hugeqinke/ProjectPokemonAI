@@ -55,11 +55,11 @@ class UserCrawler(object):
             print "Caught zlib error here!"            
             print "Todo: send error response to URL server and DON'T flush that url / user"
             errcode = -1
-        except Exception as err: 
-            # do something interesting here
-            print "Caught unexpected exception"
-            print (err)
-            errcode = -2
+        # except Exception as err: 
+        #     # do something interesting here
+        #     print "Caught unexpected exception"
+        #     print (err)
+        #     errcode = -2
              
         return userNames, battleUrls, errcode 
 
@@ -104,12 +104,6 @@ class UserCrawler(object):
                     # print (chunk) 
                     sock.send(chunk)
 
-                # don't need to chunk it as long as the battleUrl is fewer than 1024 bytes 
-                # (or whatever size it is on the UrlServer2 end)
-                # for battleUrl in battleUrls: 
-                #    battleUrl.url += '\0\n'
-                #    sock2.send(battleUrl.url)
-                #    print (battleUrl.url)
                 request = ""
                 for battleUrl in battleUrls: 
                     request += battleUrl.url[1:] + '\n'
@@ -123,7 +117,10 @@ class UserCrawler(object):
             sock2.close()
                             
         except OSError as err: 
-            print (err)
+            print (err) # logger here
+        except Exception as err: 
+            print (err) # logger here
+            sys.exit(-1) # it's not good if shit hits the fan
 
     def chunkRequest(self, request, chunkSize): 
         # constants

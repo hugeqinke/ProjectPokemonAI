@@ -1,7 +1,8 @@
 1. logger 
-    - which users are competing in the logged game
+    - which users are competing in the logged game 
     - dump logging files into some separate directory
-2. signaler 
-3. read files
+2. signaler (done)
+3. read user files for persistent state
 4. multithreading for wget
+5. make sure we catch and log any errors in the webcrawlers 
 
