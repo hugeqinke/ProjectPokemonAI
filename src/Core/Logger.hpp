@@ -52,6 +52,7 @@ namespace tlog {
     // thread tasks 
     struct consumer_args {
         char processname[100];
+        int pid; 
     };
 
     void * consumer (void * arg);
@@ -101,15 +102,33 @@ namespace tlog {
         void activate(const char* filename) {   
             struct consumer_args * args = new struct consumer_args(); 
             strcpy(args->processname, filename); 
+     
+            // if we want to call a child process, make sure we rename the threads 
+            // and everything
+            int pid = getpid();  
+            if (_pid != pid) {
+                _pid = pid;
 
+                // if we're using 'activate' correctly, we don't need anything fancy 
+                // queues won't be active at all, so we can just cancel em
+                pthread_cancel(tlog::consumer_tid); 
+                pthread_cancel(tlog::swapper_tid); 
+                pthread_join(tlog::consumer_tid, NULL); 
+                pthread_join(tlog::swapper_tid, NULL); 
+            }
+
+            args->pid = _pid; 
             pthread_create (&tlog::consumer_tid, 0, consumer, args); 
             pthread_create (&tlog::swapper_tid, 0, swap, 0);
         } 
     private:
         Log () { }
 
+        int _pid; 
+
         ~Log () {
             // activate the kill switch
+            std::cout << "This shit has been called" << std::endl; 
             sigTerminate(); 
 
             pthread_join(tlog::swapper_tid, NULL); 
@@ -177,8 +196,6 @@ namespace tlog {
     void * consumer (void * arg) {
         struct consumer_args* threadinfo = (struct consumer_args*) arg; 
        
-        pid_t pid = getpid(); 
-   
         time_t timer; 
         char time_buffer[80];
         struct tm* tm_info; 
@@ -190,7 +207,7 @@ namespace tlog {
           
         std::stringstream filename; 
         filename << threadinfo->processname
-                 << "." << pid << "." << time_buffer
+                 << "." << threadinfo->pid << "." << time_buffer
                  << ".log";
 
         std::ofstream ofs;  
