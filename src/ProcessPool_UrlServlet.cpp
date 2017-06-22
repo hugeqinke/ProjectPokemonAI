@@ -43,7 +43,7 @@ void UrlServletPool::posixSelect() {
     if (select(_maxfd + 1, &_rset, NULL, NULL, NULL) < 0) {
         std::cout << "Could not select shizzles" << std::endl;
     }
-    std::cout << "Selected the shizzles" << std::endl;
+
     for (auto it = poolbegin(); it != poolend(); it++) {
         if (FD_ISSET((*it)->getActiveFd(), &_rset)) {
             char buff[1024]; 
@@ -64,7 +64,9 @@ void UrlServletPool::posixSelect() {
         if (_db->insert(*it)) {
             // hash this motherfuckering string and find out which child process to toss back to      
             // note: we start at 1 because the string here will be quoted (unicode characters)
-            char firstChar = it->at(1); 
+            if (it->length() == 0) continue;
+ 
+            char firstChar = it->at(0); 
             int hash = firstChar % _n;
     
             // create new urls here and write to child
@@ -78,6 +80,7 @@ void UrlServletPool::posixSelect() {
 
         if (_db->bucket.size() == 500) {
             std::cout << "done" << std::endl;
+            exit(1); 
         }
          
     }

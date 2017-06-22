@@ -34,9 +34,8 @@ extern std::queue<std::string> _wqBattle;
 // in fact, i don't think we'll even have duplicates since it'll be handled the user duplicate checker
 class BattleCrawler {
 public: 
-    BattleCrawler(const char* sockname, int id) {
+    BattleCrawler(const char* sockname) {
         // listen on the socket for the shit coming out from the UserCrawler 
-        _id = id; 
         struct sockaddr_un un; 
         
         un.sun_family = AF_UNIX; 
@@ -110,7 +109,7 @@ public:
     }
 
 private: 
-    int _fd, _id; 
+    int _fd; 
     pthread_t _tid; 
     std::vector<std::string> traversed;
 };

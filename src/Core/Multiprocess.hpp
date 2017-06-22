@@ -21,7 +21,8 @@ public:
     Process(Task* task) { }
     virtual void start() { }
     virtual void stop() { }
-
+    pid_t getPid() { return _pid; }
+    pid_t getChildPid() {return  _child; } 
     Task* t; 
 protected:
     pid_t _child; 

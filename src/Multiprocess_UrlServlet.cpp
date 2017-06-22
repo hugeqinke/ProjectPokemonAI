@@ -36,11 +36,7 @@ void UrlServletProcess::start() {
         
         _activefd = _fd[1]; 
         std::string socketname = "test.socket" + std::to_string(_pid);
-        // start up python crawlers
-        std::string pythonCall = "python UserCrawler.py ";
-        std::string command = pythonCall + " " + socketname + " &";       
-        std::system(command.c_str()); 
-
+        
         UrlServlet* servlet = new UrlServlet(socketname.c_str(), _activefd, _seed);
         servlet->start();  
 
@@ -58,4 +54,8 @@ void UrlServletProcess::stop() {
 
 int UrlServletProcess::getActiveFd() {
     return _activefd; 
+}
+
+std::string UrlServletProcess::getSocket() {
+    return "test.socket" + std::to_string(_child); 
 }

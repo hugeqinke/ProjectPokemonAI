@@ -19,8 +19,9 @@ public:
     UrlServletProcess(UrlServletTask* servletTask, std::string seed); 
     virtual void start(); 
     virtual void stop();
-    
+ 
     int getActiveFd(); 
+    std::string getSocket(); 
 private: 
     // define some custom process logic here, stuff like ipc, etc
     int _fd[2]; 

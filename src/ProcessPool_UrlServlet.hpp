@@ -14,6 +14,9 @@ public:
     // every time insert process is called, we do special stuff
     void posixSelect();
     void start();
+    
+    std::vector<UrlServletProcess*>::iterator poolbegin() const; 
+    std::vector<UrlServletProcess*>::iterator poolend() const; 
 private: 
     ProcessPool<UrlServletProcess*>* _processPool; 
     DataBucket* _db;  // databucket hash table
@@ -29,9 +32,7 @@ private:
         "Aimvad", "vitico", "wtfmangg", "Nazara", "Guchi",
         "Kevinskie", "lapp94", "Enmx", "darkhuy" }; 
 
-    std::vector<UrlServletProcess*>::iterator poolbegin() const; 
-    std::vector<UrlServletProcess*>::iterator poolend() const; 
-};
+    };
 
 #endif
 
