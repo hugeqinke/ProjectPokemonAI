@@ -21,13 +21,13 @@
 
 #include "Core/Logger.hpp" 
 
-std::queue<std::string> _wq;
+extern std::queue<std::string> _wq;
 
 struct params {
     int fd; 
 }; 
 
-void * urlLoader(void* arg) {
+inline void * urlLoader(void* arg) {
     struct params* p = (struct params*) arg; 
     int n;
     char buff[1024]; 
@@ -38,6 +38,7 @@ void * urlLoader(void* arg) {
         }
         // std::cout << buff << std::endl;
         std::string buffString(buff, strlen(buff));
+
         _wq.push(buffString); 
     }    
 }
@@ -183,10 +184,12 @@ private:
             return -1;  
         }            
 
-        // std::cout << "Received signal: " << msgBuff << std::endl;
+        std::cout << "Received signal: " << msgBuff << std::endl;
 
         // keep polling on this mofo
-        while (_wq.empty()) continue; 
+        while (_wq.empty()) {
+            continue; 
+        }
  
         urlMsg = _wq.front().c_str(); 
         int urlMsgLen = strlen(urlMsg); 

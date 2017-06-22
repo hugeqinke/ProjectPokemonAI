@@ -2,6 +2,7 @@ import urllib
 import urllib2
 import socket
 import sys
+import errno
 import zlib
 from bs4 import BeautifulSoup
 
@@ -67,6 +68,8 @@ class UserCrawler(object):
     # TODO: server should send over url and user names.  This way we can reduce the cost of 
     # read/write by half 
     def request(self):
+        sock = None
+        
         # watch out for some interesting names (blaze dude)
         try: 
             # connect and handle transmission with User Server
@@ -74,13 +77,14 @@ class UserCrawler(object):
             sock.connect(self._socketName)
 
             # now handle transmission with url server
-            sock2 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            sock2.connect(self._socketName2)
+            # sock2 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            # sock2.connect(self._socketName2)
 
             requestSignal = "req\0" 
             sock.sendall(requestSignal)
             usr = urllib.unquote(sock.recv(1024))
 
+            print (usr) 
             for i in range(1, 11, 1):
                 # add the request body  
                 url = "http://replay.pokemonshowdown.com/search/"
@@ -104,23 +108,34 @@ class UserCrawler(object):
                     # print (chunk) 
                     sock.send(chunk)
 
-                request = ""
-                for battleUrl in battleUrls: 
-                    request += battleUrl.url[1:] + '\n'
+                # request = ""
+                # for battleUrl in battleUrls: 
+                #     request += battleUrl.url[1:] + '\n'
  
-                chunksBattle = self.chunkRequest(request, 1024) 
-                
-                for chunkBattle in chunksBattle: 
-                    sock2.send(chunkBattle)
+                # chunksBattle = self.chunkRequest(request, 1024) 
+                # 
+                # for chunkBattle in chunksBattle: 
+                #     sock2.send(chunkBattle)
 
-            sock.close()
-            sock2.close()
+            # sock2.close()
                             
         except OSError as err: 
             print (err) # logger here
+        except socket.error as err: 
+            if isinstance(err.args, tuple): 
+                print ("[errno %d]" % err[0])
+                if err[0] == errno.EPIPE: 
+                    print ("disconnected socket")
+                    exit(-1)
+                else: 
+                    pass
+            else: 
+                print ("socket err ", err)
         except Exception as err: 
             print (err) # logger here
-            sys.exit(-1) # it's not good if shit hits the fan
+        finally: 
+            if sock is not None: 
+                sock.close()
 
     def chunkRequest(self, request, chunkSize): 
         # constants
@@ -171,7 +186,10 @@ if __name__ == "__main__":
     # socketName: refers to Username Server
     # socketName2: refers to Battle log url Server 
     socketName = sys.argv[1]
-    socketName2 = sys.argv[2]
+    # socketName2 = sys.argv[2]
+    socketName2 = ""
 
+    print ("starting")
     wc = UserCrawler(socketName, socketName2)
     wc.retrieve()
+

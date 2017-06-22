@@ -3,7 +3,7 @@ project (ProjectPokemon)
 
 set(CMAKE_CXX_STANDARD 11)
 
-file(GLOB SOURCE_FILES "*.h" "*.cpp")
+file(GLOB SOURCE_FILES "Core/*.hpp" "Core/*.cpp" "*.hpp" "*.cpp")
 configure_file(UserCrawler.py UserCrawler.py COPYONLY)
 configure_file(TestCrawler.py TestCrawler.py COPYONLY)
 

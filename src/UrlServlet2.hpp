@@ -27,7 +27,7 @@ struct params_battle {
     int fd;     
 };
 
-std::queue<std::string> _wqBattle;
+extern std::queue<std::string> _wqBattle;
 
 // handles receiving requests from Crawlers
 // doesn't even need to communicate with main server...we'll have at most 2 duplicates. 
