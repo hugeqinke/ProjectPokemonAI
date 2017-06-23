@@ -1,7 +1,17 @@
 #include "ProcessPool_BattleServlet.hpp" 
 
 BattleServletPool::BattleServletPool(int n) {
+    _processPool = new ProcessPool<BattleCrawlerProcess*>(); 
+    _n = n; 
 
+    for (int i = 0; i < n; i++) {
+        BattleCrawlerTask* task = new BattleCrawlerTask(); 
+        BattleCrawlerProcess* process = new BattleCrawlerProcess(task); 
+        
+        process->start();
+
+        _processPool->insertProcess(process);  
+    } 
 }
 
 void BattleServletPool::start() {

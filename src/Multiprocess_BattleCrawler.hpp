@@ -7,6 +7,7 @@
 #include "Core/Multiprocess.hpp"
  
 class BattleCrawlerTask : public Task {
+public: 
     virtual void execute(); 
     virtual void start(); 
     BattleCrawlerTask(); 
@@ -14,7 +15,7 @@ class BattleCrawlerTask : public Task {
 
 class BattleCrawlerProcess : public Process {
 public: 
-    BattleCrawlerProcess(BattleCrawlerTask* task, std::string socketname); 
+    BattleCrawlerProcess(BattleCrawlerTask* task); 
     virtual void start(); 
     virtual void stop(); 
     std::string getSocket(); 

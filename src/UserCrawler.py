@@ -17,9 +17,6 @@ class UserCrawler(object):
         self._socketName = socketName
         self._socketName2 = socketName2
 
-        print(self._socketName) 
-        print(self._socketName2)
-
     # sends a request to the url and requests resources
     def crawl(self, url, headers, body): 
         battleUrls = []
@@ -28,7 +25,6 @@ class UserCrawler(object):
 
         try:
             req = urllib2.Request(url, data=body, headers=headers)
-            print (body)
             response = urllib2.urlopen(req)
 
             content = zlib.decompress(response.read(), 16+zlib.MAX_WBITS)
@@ -77,8 +73,8 @@ class UserCrawler(object):
             sock.connect(self._socketName)
 
             # now handle transmission with url server
-            # sock2 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            # sock2.connect(self._socketName2)
+            sock2 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            sock2.connect(self._socketName2)
 
             requestSignal = "req\0" 
             sock.sendall(requestSignal)
@@ -108,20 +104,24 @@ class UserCrawler(object):
                     # print (chunk) 
                     sock.send(chunk)
 
-                # request = ""
+                request = ""
                 # for battleUrl in battleUrls: 
-                #     request += battleUrl.url[1:] + '\n'
- 
-                # chunksBattle = self.chunkRequest(request, 1024) 
-                # 
-                # for chunkBattle in chunksBattle: 
-                #     sock2.send(chunkBattle)
+                   # request += battleUrl.url[1:] + '\n'
 
-            # sock2.close()
-                            
+                # chunksBattle = self.chunkRequest(request, 1024) 
+                # for chunkBattle in chunksBattle
+                for battleUrl in battleUrls:
+                   print ("SENDING BACK BATTLE URL: " + battleUrl.url[1:]) 
+                   sock2.send(battleUrl.url[1:] + '\n')
+
+
         except OSError as err: 
             print (err) # logger here
         except socket.error as err: 
+            if sock is not None: 
+                sock.close()
+            if sock2 is not None: 
+                sock2.close() 
             if isinstance(err.args, tuple): 
                 print ("[errno %d]" % err[0])
                 if err[0] == errno.EPIPE: 
@@ -133,11 +133,11 @@ class UserCrawler(object):
                 print ("socket err ", err)
         except Exception as err: 
             print (err) # logger here
-            if sock is not None: 
-                sock.close()
         finally: 
             if sock is not None: 
                 sock.close()
+            if sock2 is not None: 
+                sock2.close()
 
     def chunkRequest(self, request, chunkSize): 
         # constants
@@ -176,7 +176,7 @@ class UserCrawler(object):
 
         return headers
 
-    def retrieve(self): 
+    def retrieve(self):
         while True:
             url = self.request()
 
@@ -188,10 +188,8 @@ if __name__ == "__main__":
     # socketName: refers to Username Server
     # socketName2: refers to Battle log url Server 
     socketName = sys.argv[1]
-    # socketName2 = sys.argv[2]
-    socketName2 = ""
+    socketName2 = sys.argv[2]
 
-    print ("starting")
     wc = UserCrawler(socketName, socketName2)
     wc.retrieve()
 

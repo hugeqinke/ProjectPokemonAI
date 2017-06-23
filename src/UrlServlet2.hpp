@@ -65,14 +65,16 @@ public:
     }
 
     void start() {
-        tlog::Log::Instance().logInfo("Starting battle crawler child"); 
+        // tlog::Log::Instance().logInfo("Starting battle crawler child"); 
+        std::cout << "Starting battle crawler child" << std::endl;
         while (true) {
             int sock;
             socklen_t size;
             struct sockaddr_un incoming; 
       
             if ((sock = accept(_fd, (struct sockaddr*)&incoming, &size)) < 0) {
-                tlog::Log::Instance().logSysError("Could not accept incoming connection");
+                // tlog::Log::Instance().logSysError("Could not accept incoming connection");
+                std::cout << "COuld not accept incoming connection" << std::endl;
                 continue; 
             } 
             
@@ -80,7 +82,8 @@ public:
             std::stringstream ss; 
             
             do {
-                char buff[1024]; 
+                char buff[1024];
+                memset(buff, '\0', 1024);  
                 int buffLen = 1024; 
                 int ret; 
                 if ((ret = recv(sock, buff, buffLen, 0)) <= 0) {
@@ -97,6 +100,7 @@ public:
             // TODO: wget on separate thread...request and forget 
             std::string gameName; 
             while (getline(ss, gameName, '\n')) {
+                std::cout << "THIS IS THE GAME NAME: " <<  gameName << std::endl;
                 std::string wg = "wget -O "; 
                 std::string dir = " ./datalogs/";
                 // std::string wgetlog = " -o ./logs/wgetlog" + std::to_string(_id) + ".log"; 
@@ -110,7 +114,6 @@ public:
 
 private: 
     int _fd; 
-    pthread_t _tid; 
     std::vector<std::string> traversed;
 };
 

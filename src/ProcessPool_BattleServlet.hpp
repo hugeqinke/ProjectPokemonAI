@@ -13,6 +13,7 @@ public:
     std::vector<BattleCrawlerProcess*>::iterator poolend() const; 
 private: 
     ProcessPool<BattleCrawlerProcess*>* _processPool;
+    int _n; 
 }; 
 
 

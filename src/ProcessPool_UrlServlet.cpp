@@ -71,7 +71,7 @@ void UrlServletPool::posixSelect() {
     
             // create new urls here and write to child
             std::string urln = *it; 
-            std::cout << "Writing " << urln << std::endl;    
+            // std::cout << "Writing " << urln << std::endl;    
             if (write(_processPool->_pool.at(hash)->getActiveFd(), urln.c_str(), 1024) < 0) {
                 tlog::Log::Instance().logSysError("Could not write a url back to child"); 
                 continue; 
