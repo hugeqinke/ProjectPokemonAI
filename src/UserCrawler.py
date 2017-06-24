@@ -65,7 +65,8 @@ class UserCrawler(object):
     # read/write by half 
     def request(self):
         sock = None
-        
+        sock2 = None 
+ 
         # watch out for some interesting names (blaze dude)
         try: 
             # connect and handle transmission with User Server

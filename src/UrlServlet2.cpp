@@ -9,11 +9,18 @@ void * downloadWorker(void * arg) {
         std::string gameName = _wqBattle.front(); _wqBattle.pop();
         std::cout << "THIS IS THE GAME NAME: " <<  gameName << std::endl;
         std::string wg = "wget -O "; 
-        std::string dir = " ./datalogs/";
-        // std::string wgetlog = " -o ./logs/wgetlog" + std::to_string(_id) + ".log"; 
- 
-        std::string execution = wg + dir + gameName + " http://replay.pokemonshowdown.com/" + gameName; 
-        tlog::Log::Instance().logInfo("Executing - " + execution); 
+        std::string dir = "./datalogs/";
+       
+        std::string execution = ""; 
+        execution += wg; 
+        execution += dir; 
+        execution += gameName; 
+        execution += " \"http://replay.pokemonshowdown.com/"; 
+        execution += gameName + "\"";
+        execution += " 2>> wgetLogs/wget.log"; 
+
+        // tlog::Log::Instance().logInfo("Executing - " + execution); 
+        std::cout << "Executing " << execution << std::endl;
         std::system(execution.c_str());
     }
  

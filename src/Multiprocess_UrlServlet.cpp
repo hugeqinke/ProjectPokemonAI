@@ -35,7 +35,7 @@ void UrlServletProcess::start() {
         close(_fd[0]); 
         
         _activefd = _fd[1]; 
-        std::string socketname = "test.socket" + std::to_string(_pid);
+        std::string socketname = "sockets/test.socket" + std::to_string(_pid);
         
         UrlServlet* servlet = new UrlServlet(socketname.c_str(), _activefd, _seed);
         servlet->start();  
@@ -56,6 +56,7 @@ int UrlServletProcess::getActiveFd() {
     return _activefd; 
 }
 
+// need a getsocket call here because socket's create in child process
 std::string UrlServletProcess::getSocket() {
-    return "test.socket" + std::to_string(_child); 
+    return "sockets/test.socket" + std::to_string(_child); 
 }

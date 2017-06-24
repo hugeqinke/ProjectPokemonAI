@@ -31,7 +31,6 @@ private:
         "Gym%20Ldr.%20Pulse", "kdarewolf", "Onox", "hard", 
         "Aimvad", "vitico", "wtfmangg", "Nazara", "Guchi",
         "Kevinskie", "lapp94", "Enmx", "darkhuy" }; 
-
     };
 
 #endif

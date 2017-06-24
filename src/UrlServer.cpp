@@ -41,6 +41,7 @@ int main() {
 
     // Clear directory for testing purposes
     std::system("exec rm -f ./datalogs/*");
+    std::system("exec rm -f ./sockets/*"); 
 
     UrlServletPool* processPool = new UrlServletPool(1); 
     BattleServletPool* battleServletPool = new BattleServletPool(1); 

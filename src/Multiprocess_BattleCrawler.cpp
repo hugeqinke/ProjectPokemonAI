@@ -27,7 +27,7 @@ void BattleCrawlerProcess::start() {
     } 
 
     if (_child == 0) {
-        std::string socketname = "battle.socket" + std::to_string(_pid); 
+        std::string socketname = "sockets/battle.socket" + std::to_string(_pid); 
         BattleCrawler* bc = new BattleCrawler(socketname.c_str());  
         bc->start(); 
         
@@ -42,5 +42,5 @@ void BattleCrawlerProcess::stop() {
 // WARNING: THIS CAN ONLY BE CALLED FROM PARENT, NEED SEPARATE DISTINGUISHING 
 // THING FROM CHILD
 std::string BattleCrawlerProcess::getSocket() {
-    return "battle.socket" + std::to_string(_child); 
+    return "sockets/battle.socket" + std::to_string(_child); 
 }

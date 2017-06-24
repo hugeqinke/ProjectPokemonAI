@@ -78,7 +78,7 @@ void UrlServletPool::posixSelect() {
             }
         } 
 
-        if (_db->bucket.size() == 500) {
+        if (_db->bucket.size() == 3) {
             std::cout << "done" << std::endl;
             exit(1); 
         }
