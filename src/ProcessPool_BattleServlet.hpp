@@ -8,6 +8,7 @@ class BattleServletPool {
 public: 
     BattleServletPool(int n); 
     void start(); 
+    void stop(); 
 
     std::vector<BattleCrawlerProcess*>::iterator poolbegin() const; 
     std::vector<BattleCrawlerProcess*>::iterator poolend() const; 

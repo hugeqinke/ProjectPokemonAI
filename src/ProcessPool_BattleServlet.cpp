@@ -18,6 +18,12 @@ void BattleServletPool::start() {
 
 }
 
+void BattleServletPool::stop() {
+    for (auto it = poolbegin(); it != poolend(); it++) {
+        (*it)->stop(); 
+    }
+}
+
 std::vector<BattleCrawlerProcess*>::iterator BattleServletPool::poolbegin() const {
     return _processPool->_pool.begin(); 
 }

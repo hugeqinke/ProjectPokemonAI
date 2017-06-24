@@ -31,6 +31,12 @@ void UrlServletPool::start() {
     }    
 } 
 
+void UrlServletPool::stop() {
+    for (auto it = poolbegin(); it != poolend(); it++) {
+        (*it)->stop(); 
+    }
+} 
+
 void UrlServletPool::posixSelect() {
     std::vector<std::string> res; // store result from crawlers here
 
@@ -78,10 +84,10 @@ void UrlServletPool::posixSelect() {
             }
         } 
 
-        if (_db->bucket.size() == 3) {
-            std::cout << "done" << std::endl;
-            exit(1); 
-        }
+        // if (_db->bucket.size() == 20) {
+        //     std::cout << "done" << std::endl;
+        //     exit(1); 
+        // }
          
     }
 

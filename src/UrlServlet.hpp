@@ -21,6 +21,14 @@
 
 #include "Core/Logger.hpp" 
 
+namespace urlservlet {
+    extern bool running; 
+
+    inline void halt(int signo) {
+        exit(0);     
+    }
+} 
+
 extern std::queue<std::string> _wq;
 
 struct params {
@@ -32,7 +40,7 @@ inline void * urlLoader(void* arg) {
     int n;
     char buff[1024]; 
     int len = 1024; 
-    while(true) {
+    while(urlservlet::running) {
         if ((n = read(p->fd, buff, len)) < 0) {
             std::cout << "Wop wop error on thread" << std::endl;
         }
@@ -46,6 +54,7 @@ inline void * urlLoader(void* arg) {
 class UrlServlet {
 public: 
     UrlServlet (const char* sockname, int fdes, std::string seed) {
+        signal(SIGTERM, urlservlet::halt); 
         _fdes = fdes; 
 
         // for testing purposes, temporarily populate some fake shit into the queue
@@ -99,7 +108,7 @@ public:
     void start() {
         int sock; 
 
-        while (true) {
+        while (urlservlet::running) {
             sockaddr_un incoming; 
             socklen_t size; 
             if ((sock = accept(_fd, (struct sockaddr*)&incoming, &size)) < 0) {
@@ -124,6 +133,10 @@ public:
   
             close(sock);
         }
+    }
+
+    void stop() {
+        urlservlet::running = false; 
     }
 private:
     // Parameters: 

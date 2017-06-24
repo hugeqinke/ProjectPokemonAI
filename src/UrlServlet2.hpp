@@ -21,6 +21,11 @@
 #include "Core/Logger.hpp" 
 
 // TODO: need to make some abstract schenanigans here...some crawler interface or whatnot
+namespace battlecrawler {
+    extern bool running;
+
+    inline void halt(int signo); 
+}
 
 // use common params with UrlServlet or something
 struct params_battle {

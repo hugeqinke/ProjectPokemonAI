@@ -49,7 +49,7 @@ void UrlServletProcess::start() {
 }
 
 void UrlServletProcess::stop() {
-
+    kill(_child, SIGTERM); 
 }
 
 int UrlServletProcess::getActiveFd() {

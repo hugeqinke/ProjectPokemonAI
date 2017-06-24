@@ -14,7 +14,8 @@ public:
     // every time insert process is called, we do special stuff
     void posixSelect();
     void start();
-    
+    void stop(); 
+   
     std::vector<UrlServletProcess*>::iterator poolbegin() const; 
     std::vector<UrlServletProcess*>::iterator poolend() const; 
 private: 

@@ -34,6 +34,15 @@ typedef std::chrono::high_resolution_clock Clock;
 // Children =.=
 #define CHILDREN 1
 
+namespace mainkiller {
+    bool running = true;
+
+    void killbill(int signo) {
+        std::cout << "bill has been slayed" << std::endl;
+        running = false; 
+    }
+}
+
 // TODO: move everything to a separate "Socket" class
 // Create a bunch of sockets
 int main() {
@@ -46,11 +55,21 @@ int main() {
     UrlServletPool* processPool = new UrlServletPool(1); 
     BattleServletPool* battleServletPool = new BattleServletPool(1); 
     PythonCrawlerPool* processCrawlerPool = new PythonCrawlerPool(1, battleServletPool, processPool);
-  
+ 
+    signal(SIGTERM, mainkiller::killbill); 
+    
+    pid_t mainpid = getpid(); 
+    std::cout << "MAIN PID: " << mainpid << std::endl;
+
     // check for messages from the process 
-    while (true) { 
-        processPool->posixSelect(); 
+    while (mainkiller::running) { 
+        processPool->posixSelect();
     }
+
+    std::cout << "Killing all child processes now..." << std::endl;
+    
+    processPool->stop(); 
+    battleServletPool->stop(); 
 
     return 0;
  }

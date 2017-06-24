@@ -2,8 +2,14 @@
 
 std::queue<std::string> _wqBattle;
 
+bool battlecrawler::running = true; 
+
+void battlecrawler::halt(int signo) {
+    exit(0); 
+} 
+
 void * downloadWorker(void * arg) {
-    while (true) {    
+    while (battlecrawler::running) {    
         while(_wqBattle.empty()) continue;
 
         std::string gameName = _wqBattle.front(); _wqBattle.pop();
@@ -23,10 +29,12 @@ void * downloadWorker(void * arg) {
         std::cout << "Executing " << execution << std::endl;
         std::system(execution.c_str());
     }
- 
+
+    return (void*) 1;  
 }
 
 BattleCrawler::BattleCrawler(const char* sockname) {
+    signal(SIGTERM, battlecrawler::halt); 
     // listen on the socket for the shit coming out from the UserCrawler 
     struct sockaddr_un un; 
     
@@ -62,7 +70,7 @@ BattleCrawler::BattleCrawler(const char* sockname) {
 void BattleCrawler::start() {
     // tlog::Log::Instance().logInfo("Starting battle crawler child"); 
     std::cout << "Starting battle crawler child" << std::endl;
-    while (true) {
+    while (battlecrawler::running) {
         int sock;
         socklen_t size;
         struct sockaddr_un incoming; 

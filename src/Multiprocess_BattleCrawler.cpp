@@ -36,7 +36,7 @@ void BattleCrawlerProcess::start() {
 }
 
 void BattleCrawlerProcess::stop() {
-    
+    kill(_child, SIGTERM); 
 }
 
 // WARNING: THIS CAN ONLY BE CALLED FROM PARENT, NEED SEPARATE DISTINGUISHING 
