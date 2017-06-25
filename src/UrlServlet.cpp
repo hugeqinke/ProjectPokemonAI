@@ -6,6 +6,8 @@ std::queue<std::string> _wq;
 
 void urlservlet::halt(int signo) {
     urlservlet::running = false; 
+
+    exit(0); 
 }
 
 void * urlLoader(void * arg) {

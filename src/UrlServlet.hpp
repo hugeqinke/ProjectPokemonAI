@@ -42,7 +42,15 @@ public:
     void start() {
         int sock; 
 
+        // sleep for 30 s every 20 iterations to prevent ddos
+        int sleeptimer = 0; 
+
         while (urlservlet::running) {
+            if (sleeptimer > 20) {
+                sleep(30); 
+                sleeptimer = 0; 
+            }
+
             try {
                 sockaddr_un incoming; 
                 socklen_t size; 
@@ -205,7 +213,6 @@ private:
             _wq.pop(); 
             // We'll have to keep the value here in case we fail anywhere in the parent side
             buff = ss.str(); 
-            std::cout << buff << std::endl;
         }
         catch (const std::exception& ex) {
             std::cout << "Exception caught!" << std::endl;

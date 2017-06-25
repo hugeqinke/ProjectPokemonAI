@@ -10,15 +10,9 @@ void battlecrawler::halt(int signo) {
 } 
 
 void * downloadWorker(void * arg) {
-    // while (battlecrawler::running || !_wqBattle.empty()) {    
-    while (battlecrawler::running) {    
+    while (battlecrawler::running || !_wqBattle.empty()) {    
         while(_wqBattle.empty()) continue;
 
-        std::cout << _wqBattle.size() << std::endl;
-
-        if (!battlecrawler::running) {
-            std::cout << "Stopping..." << std::endl;
-        }
         std::string gameName = _wqBattle.front(); _wqBattle.pop();
         std::string wg = "wget -O "; 
         std::string dir = "./datalogs/";
@@ -34,7 +28,7 @@ void * downloadWorker(void * arg) {
         std::system(execution.c_str());
     }
 
-    return (void*) 1;  
+    return (void *) 0; 
 }
 
 BattleCrawler::BattleCrawler(const char* sockname) {
@@ -74,7 +68,15 @@ BattleCrawler::BattleCrawler(const char* sockname) {
 
 void BattleCrawler::start() {
     // _log.logInfo("Starting battle crawler child"); 
+    // sleep 30 s every 20 iterations to prevent ddos 
+    int sleeptimer = 0; 
     while (battlecrawler::running) {
+        sleeptimer++; 
+        if (sleeptimer > 20) {
+            sleep(30); 
+            sleeptimer = 0; 
+        }
+
         int sock;
         socklen_t size;
         struct sockaddr_un incoming; 
@@ -109,5 +111,9 @@ void BattleCrawler::start() {
             // _log.logInfo("start - pushing game to queue: " + gameName); 
             _wqBattle.push(gameName);
         }
-    }    
+    }
+    std::cout << "Waiting for dw to die" << std::endl;
+    pthread_join(_dwtid, NULL);
+    std::cout << "dw died" << std::endl;
+
 }
