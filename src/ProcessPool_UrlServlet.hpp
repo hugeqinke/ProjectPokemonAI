@@ -28,7 +28,7 @@ private:
 
     fd_set _rset;  // fd_set for select (fd with data)
 
-    tlog::Log log;
+    // tlog::Log _log;
     // initial seeds for processes...seeds can't have whitespace, so we replace em with percent encoding
     const std::vector<std::string> seeds = {
         "Gym%20Ldr.%20Pulse", "kdarewolf", "Onox", "hard", 

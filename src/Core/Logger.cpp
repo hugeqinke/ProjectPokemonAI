@@ -23,7 +23,7 @@ void * tlog::swap (void * arg) {
         if (isTerminated()) break;
         
         sleep(2);  // we swap every 2 seconds
-    
+   
         pthread_mutex_lock (&activemutex); 
         pthread_mutex_lock (&flushmutex);
 
@@ -120,7 +120,6 @@ void tlog::flush_stream(int queue_id, std::ofstream& ofs) {
 
 tlog::Log::~Log() {
     // activate the kill switch
-    std::cout << "This shit has been called" << std::endl; 
     sigTerminate(); 
 
     pthread_join(tlog::swapper_tid, NULL); 
@@ -131,10 +130,8 @@ void tlog::Log::activate(const char* filename) {
     struct consumer_args * args = new struct consumer_args(); 
     strcpy(args->processname, filename); 
 
-    // if we want to call a child process, make sure we rename the threads 
-    // and everything
     int pid = getpid();  
-    
+    _pid = pid;  
     args->pid = _pid; 
     pthread_create (&tlog::consumer_tid, 0, consumer, args); 
     pthread_create (&tlog::swapper_tid, 0, swap, 0);
@@ -143,9 +140,11 @@ void tlog::Log::activate(const char* filename) {
 void tlog::Log::write(std::string msg, std::string level) {
     time_t timer; 
     time(&timer); 
+    std::cout << "About to write.." << std::endl;
     pthread_mutex_lock(&activemutex); 
     fq.at(active).emplace(msg, level, timer); 
     pthread_mutex_unlock(&activemutex);
+    std::cout << "Done writing" << std::endl;
 } 
 
 void tlog::Log::logError(std::string entry) {

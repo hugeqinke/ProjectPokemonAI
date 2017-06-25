@@ -1,7 +1,7 @@
 #include "ProcessPool_UrlServlet.hpp" 
 
 UrlServletPool::UrlServletPool(int n) {
-    log.activate("UrlServletPool"); 
+    // _log.activate("UrlServletPool"); 
 
     _processPool = new ProcessPool<UrlServletProcess*>(); 
     _db = new DataBucket(); 
@@ -49,7 +49,8 @@ void UrlServletPool::posixSelect() {
     }
     
     if (select(_maxfd + 1, &_rset, NULL, NULL, NULL) < 0) {
-        std::cout << "Could not select shizzles" << std::endl;
+        // _log.logError("posixSelect - could not select shizzlers from fd"); 
+        perror ("Could not select shizzles"); 
     }
 
     for (auto it = poolbegin(); it != poolend(); it++) {
@@ -70,18 +71,22 @@ void UrlServletPool::posixSelect() {
         // for this parcel, determine where we should put this to work
         // TODO: persistent storage
         if (_db->insert(*it)) {
-            // hash this motherfuckering string and find out which child process to toss back to      
-            // note: we start at 1 because the string here will be quoted (unicode characters)
+            /* hash this motherfuckering string and find out which child 
+               process to toss back to */
+            /* note: we start at 1 because the string 
+               here will be quoted (unicode characters)
+            */
             if (it->length() == 0) continue;
  
             char firstChar = it->at(0); 
             int hash = firstChar % _n;
-    
+   
+            // _log.logInfo("posixSelect - Sending job over to child " + std::to_string(hash)); 
             // create new urls here and write to child
             std::string urln = *it; 
             // std::cout << "Writing " << urln << std::endl;    
             if (write(_processPool->_pool.at(hash)->getActiveFd(), urln.c_str(), 1024) < 0) {
-                log.logSysError("Could not write a url back to child"); 
+                // _log.logSysError("posixSelect - Could not write a url back to child " + std::to_string(hash)); 
                 continue; 
             }
         } 

@@ -4,6 +4,8 @@ import socket
 import sys
 import errno
 import zlib
+import logging
+import os
 from bs4 import BeautifulSoup
 
 class BattleUrl(object): 
@@ -12,10 +14,11 @@ class BattleUrl(object):
         self.fmt = fmt
 
 class UserCrawler(object):
-    def __init__(self, socketName, socketName2):
+    def __init__(self, socketName, socketName2, logger):
         self._headers = self.buildHeaders()
         self._socketName = socketName
         self._socketName2 = socketName2
+        self._logger = logger
 
     # sends a request to the url and requests resources
     def crawl(self, url, headers, body): 
@@ -47,10 +50,11 @@ class UserCrawler(object):
             
                 burl = BattleUrl(battleLink, battleFormat) 
                 battleUrls.append(burl)
+
+                self._logger.info("Battle details: " + player1 + " " + player2 + " " + battleLink + " " + battleFormat)
   
         except zlib.error as err: 
-            print "Caught zlib error here!"            
-            print "Todo: send error response to URL server and DON'T flush that url / user"
+            self._logger.exception("Caught zlib error here!")
             errcode = -1
         # except Exception as err: 
         #     # do something interesting here
@@ -81,7 +85,6 @@ class UserCrawler(object):
             sock.sendall(requestSignal)
             usr = urllib.unquote(sock.recv(1024))
 
-            print (usr) 
             for i in range(1, 11, 1):
                 # add the request body  
                 url = "http://replay.pokemonshowdown.com/search/"
@@ -102,7 +105,6 @@ class UserCrawler(object):
                 chunks = self.chunkRequest(request, 1024)
 
                 for chunk in chunks:
-                    # print (chunk) 
                     sock.send(chunk)
 
                 request = ""
@@ -112,8 +114,7 @@ class UserCrawler(object):
                 # chunksBattle = self.chunkRequest(request, 1024) 
                 # for chunkBattle in chunksBattle
                 for battleUrl in battleUrls:
-                   print ("SENDING BACK BATTLE URL: " + battleUrl.url[1:]) 
-                   sock2.send(battleUrl.url[1:] + '\n')
+                    sock2.send(battleUrl.url[1:] + '\n')
 
 
         except OSError as err: 
@@ -150,7 +151,7 @@ class UserCrawler(object):
 
         for i in range(requestLen + 1): 
             if currentSize > chunkSize: 
-                print ("something went wrong")
+                self._logger.error("Something went wrong.  Chunk size too big")
                 sys.exit(-1)
 
             if currentSize == chunkSize:
@@ -183,6 +184,15 @@ class UserCrawler(object):
 
 # test client to request for url here with socket
 if __name__ == "__main__": 
+    pid = os.getpid()
+    logger = logging.getLogger("UserCrawler" + str(pid))
+    logger.setLevel(logging.INFO)    
+
+    fh = logging.FileHandler("UserCrawler" + str(pid) + ".log")
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
     # fork a bunch of crawlers here later 
     # TODO: better arguemnt messange 
    
@@ -191,6 +201,9 @@ if __name__ == "__main__":
     socketName = sys.argv[1]
     socketName2 = sys.argv[2]
 
-    wc = UserCrawler(socketName, socketName2)
+    logger.info("UrlServlet socketname: " + socketName)
+    logger.info("UrlServlet socketname2: " + socketName2)
+
+    wc = UserCrawler(socketName, socketName2, logger)
     wc.retrieve()
 

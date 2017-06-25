@@ -46,7 +46,7 @@ public:
 private: 
     int _fd; 
     pthread_t _dwtid; 
-    tlog::Log _log; 
+    // tlog::Log _log; 
     std::vector<std::string> traversed;
 };
 

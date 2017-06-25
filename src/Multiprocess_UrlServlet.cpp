@@ -32,6 +32,7 @@ void UrlServletProcess::start() {
     } 
 
     if (_child == 0) {
+        std::cout << "Starting web crawler process" << std::endl;
         close(_fd[0]); 
         
         _activefd = _fd[1]; 
@@ -40,6 +41,7 @@ void UrlServletProcess::start() {
         UrlServlet* servlet = new UrlServlet(socketname.c_str(), _activefd, _seed);
         servlet->start();  
 
+        std::cout << "Ending child process" << std::endl;
         exit(0); 
     }
     else {

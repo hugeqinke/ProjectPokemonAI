@@ -13,7 +13,6 @@ void * downloadWorker(void * arg) {
         while(_wqBattle.empty()) continue;
 
         std::string gameName = _wqBattle.front(); _wqBattle.pop();
-        std::cout << "THIS IS THE GAME NAME: " <<  gameName << std::endl;
         std::string wg = "wget -O "; 
         std::string dir = "./datalogs/";
        
@@ -25,9 +24,9 @@ void * downloadWorker(void * arg) {
         execution += gameName + "\"";
         execution += " 2>> wgetLogs/wget.log"; 
 
-        // _log.logInfo("Executing - " + execution); 
-        std::cout << "Executing " << execution << std::endl;
         std::system(execution.c_str());
+    
+        // sleep(2); // 2 seconds between crawling to prevent ddos
     }
 
     return (void*) 1;  
@@ -35,7 +34,7 @@ void * downloadWorker(void * arg) {
 
 BattleCrawler::BattleCrawler(const char* sockname) {
     signal(SIGTERM, battlecrawler::halt); 
-    _log.activate("BattleCrawler"); 
+    // _log.activate("BattleCrawler"); 
 
     // listen on the socket for the shit coming out from the UserCrawler 
     struct sockaddr_un un; 
@@ -47,21 +46,20 @@ BattleCrawler::BattleCrawler(const char* sockname) {
     int size = offsetof(struct sockaddr_un, sun_path) + strlen(sockname);
    
     if ( (_fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-        _log.logSysError("Could not listen on sock stream");
+        // _log.logSysError("Could not listen on sock stream");
         exit(-1);  
     }
     // use the information take from the crawler to wget some webpages
     unlink(sockname); 
 
     if(bind(_fd, (struct sockaddr*)&un, size) < 0) {
-        _log.logSysError("Could not bind the the socket battle crawler thing");
+        // _log.logSysError("Could not bind the the socket battle crawler thing");
         exit(-1);
     }
 
-    std::cout << "Battle Crawler successfully binded " << sockname <<  std::endl; 
-
+    // _log.logInfo("Battle Crawler successfully binded");  
     if (listen(_fd, 5) < 0) {
-        _log.logSysError("Could not listen on battle crawler socket");
+        // _log.logSysError("Could not listen on battle crawler socket");
         exit(-1);   
     } 
 
@@ -71,15 +69,13 @@ BattleCrawler::BattleCrawler(const char* sockname) {
 
 void BattleCrawler::start() {
     // _log.logInfo("Starting battle crawler child"); 
-    std::cout << "Starting battle crawler child" << std::endl;
     while (battlecrawler::running) {
         int sock;
         socklen_t size;
         struct sockaddr_un incoming; 
   
         if ((sock = accept(_fd, (struct sockaddr*)&incoming, &size)) < 0) {
-            _log.logSysError("Could not accept incoming connection");
-            std::cout << "COuld not accept incoming connection" << std::endl;
+            // _log.logSysError("start - Could not accept incoming connection");
             continue; 
         } 
         
@@ -94,7 +90,7 @@ void BattleCrawler::start() {
             if ((ret = recv(sock, buff, buffLen, 0)) <= 0) {
                 receiving = false;
                 if (ret < 0) {
-                    _log.logSysError("Could not read battle url from the parent");
+                    // _log.logSysError("Could not read battle url from the parent");
                     exit(-1); 
                     break;
                 }
@@ -105,6 +101,7 @@ void BattleCrawler::start() {
         // TODO: wget on separate thread...request and forget 
         std::string gameName; 
         while (getline(ss, gameName, '\n')) {
+            // _log.logInfo("start - pushing game to queue: " + gameName); 
             _wqBattle.push(gameName);
         }
     }    
