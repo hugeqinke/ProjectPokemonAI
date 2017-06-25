@@ -1,6 +1,8 @@
 #include "ProcessPool_UrlServlet.hpp" 
 
 UrlServletPool::UrlServletPool(int n) {
+    log.activate("UrlServletPool"); 
+
     _processPool = new ProcessPool<UrlServletProcess*>(); 
     _db = new DataBucket(); 
     
@@ -79,7 +81,7 @@ void UrlServletPool::posixSelect() {
             std::string urln = *it; 
             // std::cout << "Writing " << urln << std::endl;    
             if (write(_processPool->_pool.at(hash)->getActiveFd(), urln.c_str(), 1024) < 0) {
-                tlog::Log::Instance().logSysError("Could not write a url back to child"); 
+                log.logSysError("Could not write a url back to child"); 
                 continue; 
             }
         } 

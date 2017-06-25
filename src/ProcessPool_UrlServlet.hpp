@@ -7,6 +7,7 @@
 #include "Multiprocess_UrlServlet.hpp"
 #include "DataBucket.hpp"
 #include "Core/ProcessPool.hpp" 
+#include "Core/Logger.hpp" 
 
 class UrlServletPool {
 public: 
@@ -27,12 +28,14 @@ private:
 
     fd_set _rset;  // fd_set for select (fd with data)
 
+    tlog::Log log;
     // initial seeds for processes...seeds can't have whitespace, so we replace em with percent encoding
     const std::vector<std::string> seeds = {
         "Gym%20Ldr.%20Pulse", "kdarewolf", "Onox", "hard", 
         "Aimvad", "vitico", "wtfmangg", "Nazara", "Guchi",
-        "Kevinskie", "lapp94", "Enmx", "darkhuy" }; 
-    };
+        "Kevinskie", "lapp94", "Enmx", "darkhuy" 
+    }; 
+};
 
 #endif
 

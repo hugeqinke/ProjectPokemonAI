@@ -26,6 +26,7 @@ private:
     // define some custom process logic here, stuff like ipc, etc
     int _fd[2]; 
     int _activefd; 
+    tlog::Log log;
     std::string _seed; 
 }; 
 

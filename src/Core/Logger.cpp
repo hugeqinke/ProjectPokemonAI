@@ -134,17 +134,7 @@ void tlog::Log::activate(const char* filename) {
     // if we want to call a child process, make sure we rename the threads 
     // and everything
     int pid = getpid();  
-    if (_pid != pid) {
-        _pid = pid;
-
-        // if we're using 'activate' correctly, we don't need anything fancy 
-        // queues won't be active at all, so we can just cancel em
-        pthread_cancel(tlog::consumer_tid); 
-        pthread_cancel(tlog::swapper_tid); 
-        pthread_join(tlog::consumer_tid, NULL); 
-        pthread_join(tlog::swapper_tid, NULL); 
-    }
-
+    
     args->pid = _pid; 
     pthread_create (&tlog::consumer_tid, 0, consumer, args); 
     pthread_create (&tlog::swapper_tid, 0, swap, 0);
@@ -188,10 +178,3 @@ void tlog::Log::logSysError(std::string entry) {
     ss << entry << ": " << err_buff;
     write(ss.str(), "SysErr");  
 }
-
-
-tlog::Log& tlog::Log::Instance() {
-    static Log instance; 
-    return instance;     
-}
-

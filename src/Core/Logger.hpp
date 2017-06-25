@@ -65,8 +65,6 @@ namespace tlog {
     
     class Log {
     public:
-        static Log & Instance();
- 
         Log (const Log&) = delete; 
         Log& operator= (const Log&) = delete; 
  
@@ -78,12 +76,11 @@ namespace tlog {
         void logSysError(std::string entry);
         // we've got no reflection, so use this to initialize logging
         void activate(const char* filename); 
-    private:
+
         Log () { }
-
-        int _pid; 
-
         ~Log (); 
+    private:
+        int _pid; 
         void write(std::string msg, std::string level); 
     };
 
