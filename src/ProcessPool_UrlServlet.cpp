@@ -37,6 +37,14 @@ void UrlServletPool::stop() {
     for (auto it = poolbegin(); it != poolend(); it++) {
         (*it)->stop(); 
     }
+
+    std::ofstream file;
+    file.open("state/users.txt");
+    for (auto it = _db->bucket.begin(); it != _db->bucket.end(); it++) {
+        file << *it << std::endl;  
+    }
+
+    file.close(); 
 } 
 
 void UrlServletPool::posixSelect() {
@@ -56,6 +64,7 @@ void UrlServletPool::posixSelect() {
     for (auto it = poolbegin(); it != poolend(); it++) {
         if (FD_ISSET((*it)->getActiveFd(), &_rset)) {
             char buff[1024]; 
+            memset(buff, 0, 1024);
             int charbuff = 1024; 
             if(read((*it)->getActiveFd(), buff, charbuff) < 0) {
                 std::cout << "Failed to read" << std::endl;

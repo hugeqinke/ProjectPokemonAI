@@ -152,9 +152,8 @@ class UserCrawler(object):
         for i in range(requestLen + 1): 
             if currentSize > chunkSize: 
                 self._logger.error("Something went wrong.  Chunk size too big")
-                sys.exit(-1)
 
-            if currentSize == chunkSize:
+            if currentSize == chunkSize - 10: # keep some buffer at the end 
                 c += '\0'
                 chunks.append(c)
                 c = ""

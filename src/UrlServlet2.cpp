@@ -5,13 +5,20 @@ std::queue<std::string> _wqBattle;
 bool battlecrawler::running = true; 
 
 void battlecrawler::halt(int signo) {
-    exit(0); 
+    std::cout << "BATTLE CRAWLER STOPPING!!!!" << std::endl;
+    battlecrawler::running = false; 
 } 
 
 void * downloadWorker(void * arg) {
+    // while (battlecrawler::running || !_wqBattle.empty()) {    
     while (battlecrawler::running) {    
         while(_wqBattle.empty()) continue;
 
+        std::cout << _wqBattle.size() << std::endl;
+
+        if (!battlecrawler::running) {
+            std::cout << "Stopping..." << std::endl;
+        }
         std::string gameName = _wqBattle.front(); _wqBattle.pop();
         std::string wg = "wget -O "; 
         std::string dir = "./datalogs/";
@@ -25,8 +32,6 @@ void * downloadWorker(void * arg) {
         execution += " 2>> wgetLogs/wget.log"; 
 
         std::system(execution.c_str());
-    
-        // sleep(2); // 2 seconds between crawling to prevent ddos
     }
 
     return (void*) 1;  
