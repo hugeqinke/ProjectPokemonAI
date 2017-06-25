@@ -55,11 +55,11 @@ int main() {
     std::system("exec rm -f ./sockets/*"); 
    
     // log.logInfo("main - Initializing user crawler process pool");  
-    UrlServletPool* processPool = new UrlServletPool(1); 
+    UrlServletPool* processPool = new UrlServletPool(7); 
     // log.logInfo("main - Initializing battle crawler process pool"); 
-    BattleServletPool* battleServletPool = new BattleServletPool(1); 
+    BattleServletPool* battleServletPool = new BattleServletPool(7); 
     // log.logInfo("main - Initializing python crawler pool"); 
-    PythonCrawlerPool* processCrawlerPool = new PythonCrawlerPool(1, battleServletPool, processPool);
+    PythonCrawlerPool* processCrawlerPool = new PythonCrawlerPool(7, battleServletPool, processPool);
  
     signal(SIGTERM, mainkiller::killbill); 
     
