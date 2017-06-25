@@ -129,8 +129,6 @@ class UserCrawler(object):
                 if err[0] == errno.EPIPE: 
                     print ("disconnected socket")
                     sys.exit(-1)
-                else: 
-                    sys.exit(-1)
             else: 
                 print ("socket err ", err)
         except Exception as err: 
