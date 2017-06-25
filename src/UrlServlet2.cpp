@@ -68,48 +68,46 @@ BattleCrawler::BattleCrawler(const char* sockname) {
 
 void BattleCrawler::start() {
     // _log.logInfo("Starting battle crawler child"); 
-    // sleep 30 s every 20 iterations to prevent ddos 
-    int sleeptimer = 0; 
     while (battlecrawler::running) {
-        sleeptimer++; 
-        if (sleeptimer > 20) {
-            sleep(30); 
-            sleeptimer = 0; 
-        }
-
         int sock;
         socklen_t size;
         struct sockaddr_un incoming; 
   
         if ((sock = accept(_fd, (struct sockaddr*)&incoming, &size)) < 0) {
             // _log.logSysError("start - Could not accept incoming connection");
+            perror("Battlecrawler - could not accept connection"); 
             continue; 
         } 
         
         bool receiving = true;
         std::stringstream ss; 
-        
-        do {
-            char buff[1024];
-            memset(buff, '\0', 1024);  
-            int buffLen = 1024; 
-            int ret; 
-            if ((ret = recv(sock, buff, buffLen, 0)) <= 0) {
-                receiving = false;
-                if (ret < 0) {
-                    // _log.logSysError("Could not read battle url from the parent");
-                    exit(-1); 
-                    break;
+       
+        try { 
+            do {
+                char buff[1024];
+                memset(buff, '\0', 1024);  
+                int buffLen = 1024; 
+                int ret; 
+                if ((ret = recv(sock, buff, buffLen, 0)) <= 0) {
+                    receiving = false;
+                    if (ret < 0) {
+                        // _log.logSysError("Could not read battle url from the parent");
+                        perror("Battle crawler - could not receive message"); 
+                        break;
+                    }
                 }
+                ss << buff;  
+            } while(receiving); 
+      
+            // TODO: wget on separate thread...request and forget 
+            std::string gameName; 
+            while (getline(ss, gameName, '\n')) {
+                // _log.logInfo("start - pushing game to queue: " + gameName); 
+                _wqBattle.push(gameName);
             }
-            ss << buff;  
-        } while(receiving); 
-  
-        // TODO: wget on separate thread...request and forget 
-        std::string gameName; 
-        while (getline(ss, gameName, '\n')) {
-            // _log.logInfo("start - pushing game to queue: " + gameName); 
-            _wqBattle.push(gameName);
+        }
+        catch (const std::exception& ex) {
+            std::cerr << ex.what() << std::endl;
         }
     }
     std::cout << "Waiting for dw to die" << std::endl;

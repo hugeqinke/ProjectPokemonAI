@@ -42,20 +42,13 @@ public:
     void start() {
         int sock; 
 
-        // sleep for 30 s every 20 iterations to prevent ddos
-        int sleeptimer = 0; 
-
         while (urlservlet::running) {
-            if (sleeptimer > 20) {
-                sleep(30); 
-                sleeptimer = 0; 
-            }
-
             try {
                 sockaddr_un incoming; 
                 socklen_t size; 
                 if ((sock = accept(_fd, (struct sockaddr*)&incoming, &size)) < 0) {
                     // _log.logSysError("Could not accept incoming request"); 
+                    perror("Could not accept incoming request"); 
                 }
           
                 // give some work to the client 
@@ -157,6 +150,7 @@ private:
 
             if ((msgSize = recv(sock, msgBuff, 4, 0)) < 0) {
                 // _log.logSysError("Failed to receive incoming message");
+                perror("Could not receive message from crawler"); 
                 return -1;  
             }            
 
@@ -171,6 +165,7 @@ private:
             urlMsg = recentMsg.c_str(); 
             int urlMsgLen = strlen(urlMsg); 
             if (send(sock, urlMsg, urlMsgLen, 0) < 0) {
+                perror("Could not send message"); 
                 // _log.logSysError("Failed to send back message");
                 return -1; 
             }
@@ -198,6 +193,7 @@ private:
                     receiving = false; 
                 
                     if (msgSize < 0) {
+                        perror("Could not receive chunks"); 
                         std::cout << "Logging error!KLJDKLJF" << std::endl;
                         // _log.logError("receiveUrls - Failed to receive incoming urls");
                         return -1; 

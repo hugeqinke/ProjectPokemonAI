@@ -67,6 +67,7 @@ UrlServlet::UrlServlet(const char* sockname, int fdes, std::string seed) {
 
     if(listen(_fd, 5) < 0) {
         // _log.logSysError("Could not listen on socket"); 
+        perror("Could not listen on the socket"); 
         exit(-1); 
     }
     

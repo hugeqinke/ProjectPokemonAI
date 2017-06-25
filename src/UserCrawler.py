@@ -6,6 +6,7 @@ import errno
 import zlib
 import logging
 import os
+import time
 from bs4 import BeautifulSoup
 
 class BattleUrl(object): 
@@ -118,7 +119,7 @@ class UserCrawler(object):
 
 
         except OSError as err: 
-            print (err) # logger here
+            self._logger.exception(err)
         except socket.error as err: 
             if sock is not None: 
                 sock.close()
@@ -129,10 +130,13 @@ class UserCrawler(object):
                 if err[0] == errno.EPIPE: 
                     print ("disconnected socket")
                     sys.exit(-1)
+                else:
+                    self._logger.exception(err)
+                    sys.exit(-1)
             else: 
                 print ("socket err ", err)
         except Exception as err: 
-            print (err) # logger here
+            self._logger.exception(err)
         finally: 
             if sock is not None: 
                 sock.close()
@@ -176,7 +180,12 @@ class UserCrawler(object):
         return headers
 
     def retrieve(self):
+        count = 0
+        # sleep every 20 requests to prevent ddos and let server catch up
         while True:
+            if count == 20: 
+                time.sleep(40)
+                count = 0
             url = self.request()
 
 # test client to request for url here with socket
